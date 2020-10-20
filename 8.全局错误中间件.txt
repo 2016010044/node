@@ -1,0 +1,42 @@
+在很多地方都用到了throw err,就是监听到错误就抛异常，这里想把这个异常存到数据库，存数据库首先得有个模式。就在models下建立Error.js：
+import mongoose from 'mongoose'
+
+// 创建轮播图的模式对象
+const errorSchema = mongoose.Schema({
+    // 错误名称
+    error_name: {type: String, required: true},
+    // 错误消息
+    error_message: {type: String, required: true},
+    // 错误堆栈
+    error_stack: {type: String, required: true},
+    // 错误发生时间
+    error_time: {type: Date, default: Date.now()},
+});
+
+const Error = mongoose.model('Error', errorSchema);
+export default Error;
+接着使用中间件将错误信息添加到数据库。在middle_wares/error_log.js:
+import Error from './../models/Error'
+
+export default (error, req, res, next)=>{
+    const error_log = new Error({
+        // 错误名称
+        error_name: error.name,
+        // 错误消息
+        error_message: error.message,
+        // 错误堆栈
+        error_stack: error.stack
+    });
+
+    error_log.save((err, result)=>{
+        res.json({
+            status: 500,
+            result: '服务器内部错误!',
+            message: error.message
+        })
+    });
+};
+然后在全局中引入，app.use()在路由下面。
+在以后如果执行到throw err或者return next(err)或者...(凡是有err的地方)的时候，就会用到上述写的中间件，最终插入到数据库中。
+
+

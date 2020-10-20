@@ -1,0 +1,97 @@
+首先在浏览器中输入url:localhost:2000,在服务器中会找到get请求渲染的页面：
+app.get('/', (req, res, next)=>{
+    res.render('index1');
+});
+
+index1.ejs:
+<body>
+   <form action="http://localhost:2000/" method="post">
+       <label>
+           时间：
+           <input type="text" name="l_name">
+       </label>
+       <br>
+       <label>
+           地点：
+           <input type="text" name="l_address">
+       </label>
+       <br>
+       <label>
+           人物：
+           <input type="text" name="l_person">
+       </label>
+       <br>
+       <input id="btn_sub" type="button" value="提交">
+   </form>
+<script src="node_modules/jquery/dist/jquery.js"></script>
+<script>
+    $('#btn_sub').on('click', function () {
+        // console.log($('form').serialize());
+        var $form = $('form');
+        console.log($form.attr('action'));
+        $.ajax({
+            url:$form.attr('action'),
+            type:$form.attr('method'),
+            // 提交不同的数据需要序列化
+            data: $form.serialize(),
+            success: function (data) {
+                console.log(data);
+            }
+        })
+        // 阻止默认事件
+        return false;
+    });
+</script>
+</body>
+当在这个页面提交请求后，会请求服务器的post请求：
+app.post('/', (req, res, next)=>{
+   console.log('1111');
+   let data = '';
+   req.on('data', (chunk)=>{
+      data += chunk;
+   });
+   req.on('end', ()=>{
+       fs.writeFile(path.join(__dirname, 'data.txt'), data, (err)=>{
+          if(!err){
+              res.end('success!');
+          }
+       });
+   });
+});
+然后将请求的数据写入data,txt中，最终返回给客户端数据。
+
+详情请看day10/lkfile/app1.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

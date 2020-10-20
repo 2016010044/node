@@ -1,0 +1,116 @@
+详情请看day10/lkfile/app.js
+下面就来介绍一下：首先安装formidable
+app.js:
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const formidable = require('formidable');
+
+const app = express();
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.use('/node_modules', express.static(path.join(__dirname, '/node_modules')));
+
+app.get('/', (req, res, next) => {
+    res.render('index2');
+});
+
+app.post('/', (req, res, next) => {
+    // 1. 创建实例
+    let form = new formidable.IncomingForm();
+    // 2. 指定文件的上传文件夹
+    form.uploadDir = path.join(__dirname, 'dir');
+    // 3. 指定文件的后缀
+    form.keepExtensions = true;
+
+    // 解析request发送过来的数据
+    form.parse(req, function(err, fields, files) {
+        if(err){
+            throw err;
+        }
+        console.log(fields);
+        console.log(files);
+        res.end('success');
+    });
+});
+
+index2.ejs:
+<body>
+   <form action="/" method="post" enctype="multipart/form-data">
+       <label>
+           时间：
+           <input type="text" name="l_name">
+       </label>
+       <br>
+       <label>
+           地点：
+           <input type="text" name="l_address">
+       </label>
+       <br>
+       <label>
+           人物：
+           <input type="file" name="l_person">
+       </label>
+       <br>
+       <input id="btn_sub" type="button" value="提交">
+   </form>
+<script src="node_modules/jquery/dist/jquery.js"></script>
+<script>
+    $('#btn_sub').on('click', function () {
+        var $form = $('form');
+        $.ajax({
+            url:$form.attr('action'),
+            type:$form.attr('method'),
+            data: new FormData($form[0]),
+            // 不要处理转化成一个查询字符串
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                console.log(data);
+            }
+        })
+    });
+</script>
+</body>
+这里的new FormData:将form表单元素的name与value进行组合，实现表单数据的序列化，从而减少表单元素的拼接，提高工作效率。
+
+什么是序列化：序列化表单就是将form表单中所有name属性序列化成KEY-VALUE的形式，提交到后台，后台以对象相应的字段接收（就是客户端传的数据是data,那么服务器端接收的时候也是用data来接收数据）
+serialize()和new FormData()的区别:
+1)serialize是jQuery独有的方法，而new FormData()是Html5的对象。
+2）serialize只能序列化一般数据，文件上传则无法序列化，不支持文件二进制流提交。new FormData()可以异步上传二进制文件,通过ajax提交表单数据，可以实现文件上传。所以在普通序列化的时候用serialize，文件上传的时候用new FormData()。
+
+另外就是processData为true，提交的时候不会序列化，
+contentType：get没有这个参数，post才有，默认值为：application/x-www-form-urlencoded，但这儿要用的是multipart/form-data，所以值为false,
+以上就是上传文件的具体过程，需要注意的是：
+1.要设置表单头，即在form标签上加上固定写法的属性为enctype="multipart/form-data"，
+2.input当中一定要有name属性。
+这里补充一下：如果用的是ejs，在res.render("index")，index后缀可以不加，如果是nunjucks必须加后缀html.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.listen(2000, () => {
+    console.log('running!')
+});
