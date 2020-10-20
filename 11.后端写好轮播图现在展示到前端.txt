@@ -1,0 +1,36 @@
+后端的轮播图已经全部写好了，现在前端从数据库中拿到展示到页面。
+首先前端轮播图页面在resources.html中。前端请求接口：
+router.get('/web/res', (req, res)=>{
+    Sowing.find({}, '-_id image_title image_url image_link',(err, sowings)=>{
+        if(err){
+            return next(err);
+        }
+
+        // 追加一个字段
+        let tag = ['one', 'two', 'three', 'four'];
+        for(let i=0; i<tag.length; i++){
+            let sowing = sowings[i];
+            sowing['image_tag'] = tag[i];
+        }
+
+        res.render('web/resources.html', {sowings});
+    });
+});
+页面根据这个传递的sowing拿到数据并渲染。
+<div class="mainWrap clearfix">
+	<div class="banner_pagex">
+    	<ul class="banner_box">
+            {% for sowing in sowings%}
+            <li class="{{sowing.image_tag}}" style="background:url('/uploads/{{sowing.image_url}}') no-repeat top center">
+                <a href="{{sowing.image_link}}" target="_blank"></a>
+            </li>
+            {% endfor %}
+    	</ul>
+        <ul class="btn_list clearfix">
+        	<li class="on"></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+</div>
