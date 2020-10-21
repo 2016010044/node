@@ -1,0 +1,68 @@
+session
+1)  概念
+Session用于记录客户状态的一种机制，不同于Cookie的是，Cookie存储在客户端，而Session则将数据存储在服务器上（即存储到数据库中，数据库中的session的状态看用户有没有登录（客户状态））
+2)  Session 的用途
+session 运行在服务器端，当客户端第一次访问服务器时，可以将客户的登录信息保存，当客户访问其他页面时，可以判断客户的登录状态，做出提示，相当于登录拦截。session 可以和 Redis 或者数据库等结合做持久化操作，当服务器挂掉时也不会导致某些客户信息（购物车）丢失
+3)  工作原理
+1)  当浏览器访问服务器并发送第一次请求时，服务器端会创建一个 session 对象，生成一个类似于key,value 的键值对
+2)   将 key(cookie)返回到浏览器(客户)端，浏览器下次再访问时，携带 key(cookie)，找到对应的 session(value)
+3)    最后将存在session中的信息返回到页面上
+
+4)  使用
+1)  项目中安装express-session和connect-mongo
+			npm install express-session --save
+			npm install connect-mongo --save（使用mongodb数据库的话下载使用）
+2)  代码中使用
+			1)   引入express-session
+				var session = require('express-session');
+			2)   引入connect-mongo用于express连接数据库存储session
+				var mongoStore  = require('connect-mongo')(session);
+			3)   中间件使用session
+				app.use(session({
+	//参数配置
+	secret:'itlike',//加密字符串
+	name:'likeid',//返回客户端key的名称，默认为connect_sid
+	resave:false,//强制保存session，即使它没有变化
+	saveUninitialized:true,//强制将未初始化的session存储。当新建一个session且未设定属性或值时，它就处于未初始化状态。在设定cookie前，这对于登录验证，减轻服务器存储压力，权限控制是有帮助的，默认为true
+	cookie:{maxAge:24*3600 },
+	rolling:true, //在每次请求时进行设置cookie，将重置cookie过期时间
+	store:new mongoStore({//将session数据存储到mongo数据库中
+		url:'mongodb://127.0.0.1/college', //数据库地址
+		touchAfter:24*3600  //多长时间往数据库中更新存储一次，除了在会话数据上更改了某些数据除外
+	})
+}));
+将session存到college数据库中，会生成一个session表来记录客户用户状态。
+4)   获取session
+req.session.token = 'itlike'
+5)   设置session
+req.session.token
+
+6）当退出登录时，要销毁session。
+	方法一
+		将cookie的时间设置为0，只有cookie中携带的信息通过客户端请求传到服务器，由对应的session接收session才起作用，cookie没了session自然而然的将不起作用： req.session.cookie.maxAge = 0;
+	方法二
+		req.session.destroy((err) => {
+        console.log(err)
+    });
+
+7）补充：为什么可以在req中拿session，因为session是一个中间件。一般先访问app.js,接着访问路由等。app.js最先执行。
+8）如果登录了，session就有token了，可以给token赋值。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,73 @@
+服务器启动后，最先执行的是app.js，这时候就会执行各种中间件。既然是中间件就可以使用req拿到，就像req.session。因为中间件就是处理请求的。那么接下来说一下权限控制中间件，先看一下代码：
+export default (req, res, next)=>{
+    console.log(req.path);
+    // 1. 过滤所有非后端请求
+    if(req.path.indexOf('/back/') === -1){ // 没有找到
+       return next();
+    }
+
+    // 2. 判断是否是处于有效登录时效
+    if(req.session.token){
+        return next();
+    }
+
+    // 3. 没有登录 登录失效
+    // 3.1 如果是接口相关
+    if(req.path.indexOf('/api/')!== -1){
+        return next(new Error('非法访问!'));
+    }
+
+    // 3.2 如果是页面相关
+    res.render('back/login.html');
+}
+
+如果访问的不是后端页面，就直接return next()执行后续操作，就像访问的是/web就访问web页面，如果session没失效，就放行执行后续操作。还有就是我们可能在页面中调用了接口，但是需要登录后才能调用接口，但是现在没登陆，直接在浏览器中访问就可能访问到数据，但有时候服务器不想让外界拿到这些数据，就可以进行权限控制。例如：
+http://localhost:3000//back/sowing/api/add
+结果：{"status":500,"result":"服务器内部错误!","message":"非法访问!"}，这儿的result和status就是使用之前配置的错误中间件得到的。只要一发现错误就使用该中间件然后这个中间件就会返回这些东西。
+这儿的return next()就是结束当前中间件的使用，使用下一个中间件。就是说无论怎样在使用app.js的时候，就要使用该中间件，如果不return next()即不放行的话，下一个中间件不会执行。
+
+这里解释一下登录后到首页的权限控制：因为登录要么成功，要么失败，失败不用说了，失败了session的token就没有值，成功了session.token就有值。然后把session 存本地。这时候会使用到权限控制中间件，只要当session.token有值了，就说明登录成功了，才能进行下一步操作，即跳转页面。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

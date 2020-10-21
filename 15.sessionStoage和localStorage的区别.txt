@@ -1,0 +1,2 @@
+localStorage生命周期是永久，除非手动清掉了，否则存储的信息将永远存在。
+sessionStorage的生命周期为当前窗口或标签页。

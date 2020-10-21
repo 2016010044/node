@@ -16,6 +16,7 @@ router.get('/web/res', (req, res)=>{
         res.render('web/resources.html', {sowings});
     });
 });
+这儿追加字段的时候sowing值不能为undefined，也就是tag有四个，数据库中的数据得大于等于四条，否则拿到的sowing为undefined，下面的sowing['image_tag'] = tag[i];会报错
 页面根据这个传递的sowing拿到数据并渲染。
 <div class="mainWrap clearfix">
 	<div class="banner_pagex">
